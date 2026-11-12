@@ -15,27 +15,23 @@ router = APIRouter()
 
 
 def _api_key() -> str | None:
-    import os
+    """Resolve the profile's OpenRouter key through Hermes's secret scope only.
 
-    # Hermes's public secret route: honors the active profile's secret scope
-    # (safe under profile multiplexing), falls back to os.environ on
-    # single-profile deployments, and fails closed when multiplexing is active
-    # with no scope bound.
+    No ``.env`` / ``os.environ`` fallback: under profile multiplexing
+    ``get_secret`` deliberately returns nothing outside the profile's scope so
+    one profile cannot see another's key, and a direct fallback would undo
+    that. The plugin host installs this profile's scope
+    (``set_secret_scope(build_profile_secret_scope(home))``), so the lookup is
+    well-defined here.
+    """
     try:
-        from agent.secret_scope import get_secret
-
-        key = get_secret("OPENROUTER_API_KEY")
-        if key:
-            return key
-    except ImportError:
-        # Older Hermes without agent.secret_scope — degrade gracefully.
-        pass
+        from agent.secret_scope import UnscopedSecretError, get_secret
+    except ImportError:  # older Hermes without the secret-scope route
+        return None
     try:
-        from hermes_cli.config import load_env
-
-        return load_env().get("OPENROUTER_API_KEY") or None
-    except Exception:
-        return os.environ.get("OPENROUTER_API_KEY") or None
+        return get_secret("OPENROUTER_API_KEY") or None
+    except UnscopedSecretError:  # multiplexing, no scope bound: fail closed
+        return None
 
 
 @router.get("/credits")

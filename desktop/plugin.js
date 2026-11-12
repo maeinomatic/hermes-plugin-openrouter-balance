@@ -88,7 +88,7 @@ export default {
   name: 'OpenRouter Balance',
   register(ctx) {
     _ctx = ctx
-    host.onEvent('message.complete', onTurnComplete)
+    ctx.onEvent('message.complete', onTurnComplete)
     ctx.register({ id: 'chip', area: 'statusBar.right', order: 125, render: () => jsx(Chip, {}) })
   }
 }

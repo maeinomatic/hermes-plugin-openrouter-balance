@@ -1,5 +1,5 @@
 name: openrouter-balance
-version: 1.0.2
+version: 1.0.3
 description: Live OpenRouter credit balance in the desktop status bar, using the key Hermes already has.
 api: plugin_api.py
 requires_env:
